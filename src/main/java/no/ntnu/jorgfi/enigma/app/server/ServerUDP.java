@@ -4,6 +4,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
+import no.ntnu.jorgfi.enigma.lib.Address;
 import no.ntnu.jorgfi.enigma.lib.Message;
 import no.ntnu.jorgfi.enigma.lib.Port;
 import no.ntnu.jorgfi.enigma.lib.Util;
@@ -40,19 +41,29 @@ public class ServerUDP {
     public void run() {
 
         
-        /* Printing active port to STDOUT */
+        /* Printing active ip-address to STDOUT */
         Util.printer(
-            Message.S_ACTIVE + Port.LOCALHOST_RPC,
+            Message.S_ACTIVE_1 + Address.ACTIVE_HOST,
             true,
             Util.SERVER_COLOR
         );
+
+        /* Printing active port to STDOUT */
+        Util.printer(
+            Message.S_ACTIVE_2 + Port.ACTIVE_PORT,
+            true,
+            Util.SERVER_COLOR
+        );
+
+        /* Aesthetic spacing */
+        System.out.println();
 
         /* Creating a binary sequence for the upcoming appeal with a fitting size*/
         byte[] binaryAppeal = new byte[1024];
 
         DatagramSocket socket;
         try {
-            socket = new DatagramSocket(Port.LOCALHOST_RPC);
+            socket = new DatagramSocket(Port.ACTIVE_PORT);
 
         } catch (Exception e) {
 

@@ -40,7 +40,7 @@ public class ClientUDP {
             DatagramPacket sendingPacket = new DatagramPacket (
                 binaryMessage, 
                 binaryMessage.length,
-                InetAddress.getByName(Address.LOCALHOST),
+                InetAddress.getByName(Address.ACTIVE_HOST),
                 Port.LOCALHOST_RPC 
             );
 

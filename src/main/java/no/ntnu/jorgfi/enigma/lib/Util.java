@@ -21,8 +21,6 @@ public class Util {
     /** Scanner-object for reading input from STDIN */
     public static final Scanner TERMINAL =  new Scanner(System.in);
 
-
-
     /** Client text color for STDOUT. Making it easier to divide server and client */
     public static final Attribute CLIENT_COLOR = Attribute.TEXT_COLOR(21);
 

@@ -1,6 +1,5 @@
 package no.ntnu.jorgfi.enigma.core.client;
 
-import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.Attribute;
 
 import no.ntnu.jorgfi.enigma.app.client.ClientUDP;
@@ -40,7 +39,7 @@ public class ClientLauncher {
                 if (!connected) { 
                     System.out.print(Message.CL_SUCCESS_1 + "\"");
                     Util.printer(Message.CL_SUCCESS_2, false, Attribute.GREEN_TEXT());
-                    System.out.println("\"");
+                    System.out.println("\"\n");
 
                     /* Sets the field conncted to true */
                     connected = true;

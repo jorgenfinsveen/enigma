@@ -36,7 +36,7 @@ public class ServerUI {
      */
     public static void main(String[] args) {
         Boolean requested = false;
-        System.out.println("WELCOME TO SERVER UI");
+        System.out.println("\nWELCOME TO SERVER UI");
         System.out.println("\n" + LINES);
         System.out.println("Enter the initializing command to continue...");
 
@@ -141,7 +141,7 @@ public class ServerUI {
         for (int i = 0; i <= amount; i++) {
             input = scanner.nextLine();
             // Sometimes, the scanner unintentionally register blank lines
-            if (!input.isBlank()) {
+            if (!input.isEmpty()) {
                 sentences[index] = input;
                 index++;
             }

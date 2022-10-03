@@ -21,9 +21,9 @@ public class Port {
     /** Sun RPC port at localhost */
     public static final int LOCALHOST_RPC       = 9876;    
     /** HTTP port at localhost */
-    public static final int LOCALHOST_HTTP      = 80;
+    public static final int LOCALHOST_HTTP      = 80;   // Not UDP-compatible
     /** HTTPS port at localhost */
-    public static final int LOCALHOST_HTTPS     = 443; 
+    public static final int LOCALHOST_HTTPS     = 443;  // Not UDP-compatible
 
 
 
@@ -33,4 +33,12 @@ public class Port {
     */
     /** UDP port at testhost */
     public static final int TESTHOST    = 1234;     
+
+
+    /** Port in use for testing of the UDP client */
+    public static int ACTIVE_PORT = LOCALHOST_RPC;
+
+    /*
+     * DEFAULT: LOCALHOST_RPC 9876
+    */
 }

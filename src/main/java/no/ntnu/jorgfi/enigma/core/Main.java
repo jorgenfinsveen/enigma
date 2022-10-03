@@ -1,7 +1,9 @@
 package no.ntnu.jorgfi.enigma.core;
 
+import no.ntnu.jorgfi.enigma.core.build.Build;
 import no.ntnu.jorgfi.enigma.core.client.ClientLauncher;
 import no.ntnu.jorgfi.enigma.core.server.ServerLauncher;
+import no.ntnu.jorgfi.enigma.extra.ServerUI;
 
 
 /**
@@ -53,14 +55,41 @@ public class Main {
     * @throws InterruptedException if <code>Thread.sleep(100)</code>
     *   fails to stop the thread.
     */
-    public static void main(String[] args) 
-        throws InterruptedException {
-
-        /* Aesthetic spacing */
-        System.out.println();
+    public static void main(String[] args) throws InterruptedException {
 
         /* Store the method-args, which will be reused */
         Main.args = args;
+
+        /* Runs configuration */
+        Build.CONFIGURATE();
+
+        /* Display mode */
+        System.out.println("\nApplication mode: " + 
+                           ( (Build.UDP_MODE) ? "UDP" : "ServerUI" )
+        );
+
+        /* Chose application mode */
+        if (Build.UDP_MODE) startUDP();
+        else startUI();
+    }
+
+
+
+    /**
+     * Starts the application in ServerUI-mode (custom)
+     */
+    private static void startUI() {
+        ServerUI.main(args);
+    }
+
+
+    /**
+     * Starts the application in UDP-Mode (default)
+     */
+    private static void startUDP() throws InterruptedException {
+
+        /* Aesthetic spacing */
+        System.out.println();
 
         /* 
          Sets max priority to the server-thread,

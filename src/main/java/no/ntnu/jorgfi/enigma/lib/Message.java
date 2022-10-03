@@ -43,8 +43,10 @@ public class Message {
      * ServerUDP 
      * ----------------------------------------------------------------
     */
-    /** Active server message + port @param port number */
-    public static final String S_ACTIVE   = "\n\nServer active at port: ";
+    /** Active server message + address, part 1 @param ip address */
+    public static final String S_ACTIVE_1   = "\n\nServer IP-address: ";
+     /** Active server message + port, part 2 @param port number */
+     public static final String S_ACTIVE_2   = "\nActive at port: ";
     /** Receiving a packet from ClientUDP part 1 */
     public static final String S_RECEIVED_1 = "\nReceived UDP packet from: ";
     /** Receiving a packet from ClientUDP part 2 */
