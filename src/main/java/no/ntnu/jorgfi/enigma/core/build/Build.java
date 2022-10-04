@@ -5,7 +5,9 @@ import java.util.stream.IntStream;
 
 import config.Config;
 import no.ntnu.jorgfi.enigma.lib.Address;
+import no.ntnu.jorgfi.enigma.lib.Message;
 import no.ntnu.jorgfi.enigma.lib.Port;
+import no.ntnu.jorgfi.enigma.lib.Util;
 
 /**
  * Applies the configurations from
@@ -18,6 +20,14 @@ public class Build {
 
     /** Applicaction mode */
     public static boolean UDP_MODE = true;
+
+    /** Full-auto mode */
+    public static boolean FULL_AUTO = false;
+
+    /* Server configurations */
+    private static String activeIP = "";
+    private static int activePort = -1; 
+
 
     /** Collection of valid port numbers for ip addresses */
     private static final String[][] VALID_COMBINATIONS = new String[][] {
@@ -37,12 +47,53 @@ public class Build {
         }
     };
 
+
     /**
      * Applies all configurations to the application
      */
     public static void CONFIGURATE() {
+        APPLY_LANGUAGE();
         APPLY_SERVER();
         APPLY_MODE();
+        APPLY_COLOR();
+        APPLY_FULL_AUTO();
+    }
+
+
+
+    private static void APPLY_COLOR() {
+        Config.COLOR_CONFIG();
+        Util.colorized = Config.colorized;
+    }
+
+
+    private static void APPLY_FULL_AUTO() {
+        Config.FULL_AUTO_CONFIG();
+        if ("localhost".equalsIgnoreCase(activeIP) && activePort == Port.LOCALHOST_RPC ) {
+            FULL_AUTO = true;
+        } else {
+            System.out.print("\nConfig: Full-auto mode not compatible with ");
+            System.out.print("other servers than localhost.");
+            System.out.println("\nConfig: Full-auto disabled.");
+        }
+    }
+
+
+
+
+
+
+
+
+    private static void APPLY_LANGUAGE() {
+        Config.LANGUAGE_CONFIG();
+
+        if ("norwegian".equalsIgnoreCase(Config.language)) {
+            Message.lang = "norwegian";
+        } else {
+            Message.lang = "english";
+        }
+        Message.refresh();
     }
 
     
@@ -72,10 +123,16 @@ public class Build {
                                .anyMatch(Config.serverPort::equals);
             
             Address.ACTIVE_HOST = Address.LOCALHOST;
+            activeIP = "localhost";
 
-            if (valid_port) Port.ACTIVE_PORT = PORT_NUMBER[0][FIND_INDEX(0)];
+            if (valid_port) {
+                int port = PORT_NUMBER[0][FIND_INDEX(0)];
+                Port.ACTIVE_PORT = port;
+                activePort = port;
+            }
             else {
                 Port.ACTIVE_PORT = PORT_NUMBER[1][0];
+                activePort = PORT_NUMBER[1][0];
                 System.out.print("\nConfig: Invalid port \"" + Config.serverPort + "\"");
                 System.out.print(" for server \"" + Config.serverIP + "\".");
                 System.out.print("\nConfig: Deafult port for ");
@@ -87,10 +144,16 @@ public class Build {
                                .anyMatch(Config.serverPort::equals);
 
             Address.ACTIVE_HOST = Address.TESTHOST;
+            activeIP = "testhost";
 
-            if (valid_port) Port.ACTIVE_PORT = PORT_NUMBER[1][FIND_INDEX(0)];
+            if (valid_port) {
+                int port = PORT_NUMBER[1][FIND_INDEX(0)];
+                Port.ACTIVE_PORT = port;
+                activePort = port;
+            }
             else {
                 Port.ACTIVE_PORT = PORT_NUMBER[1][0];
+                activePort = PORT_NUMBER[1][0];
                 System.out.print("\nConfig: Invalid port \"" + Config.serverPort + "\"");
                 System.out.print(" for server \"" + Config.serverIP + "\".");
                 System.out.print("\nConfig: Deafult port for ");
@@ -99,6 +162,8 @@ public class Build {
         } else {
             System.out.println("\nConfig: Invalid server option.");
             System.out.println("Config: Default configuration chosen.");
+            activeIP = "localhost";
+            activePort = Port.LOCALHOST_RPC;
         }
     }
 

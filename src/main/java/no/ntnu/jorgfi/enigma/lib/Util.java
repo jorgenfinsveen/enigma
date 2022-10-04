@@ -18,6 +18,9 @@ import com.diogonunes.jcolor.Attribute;
  */
 public class Util {
 
+    /** Colorized mode. Colorful terminal when colorized = true */
+    public static boolean colorized = true;
+
     /** Scanner-object for reading input from STDIN */
     public static final Scanner TERMINAL =  new Scanner(System.in);
 
@@ -37,13 +40,35 @@ public class Util {
     private static AnsiFormat fError = new AnsiFormat(Attribute.YELLOW_TEXT(), Attribute.RED_BACK());
 
 
-    public static void printer(String str, boolean newLine, Attribute color) {
-        if (newLine) System.out.println(Ansi.colorize(str, color));
-        else System.out.print(Ansi.colorize(str, color));
+
+    /**
+     * Output to STDOUT with formatting
+     * @param string to print
+     * @param newLine true when lineshifting
+     * @param color of the text
+    */
+    public static void printer(String string, boolean newLine, Attribute color) {
+        if (colorized) {
+            if (newLine) System.out.println(Ansi.colorize(string, color));
+            else System.out.print(Ansi.colorize(string, color));
+        } else {
+            if (newLine) System.out.println(string);
+            else System.out.print(string);
+        }
     }
 
-    public static void errorPrinter(String str, boolean newLine) {
-        if (newLine) System.out.println(fError.format(str));
-        else System.out.print(fError.format(str));
+    /**
+     * ERROR to STDOUT with formatting
+     * @param string to print
+     * @param newLine true when lineshifting
+    */
+    public static void errorPrinter(String string, boolean newLine) {
+        if (colorized) {
+            if (newLine) System.out.println(fError.format(string));
+            else System.out.print(fError.format(string));
+        } else {
+            if (newLine) System.out.println(string);
+            else System.out.print(string);
+        }
     }
 }
