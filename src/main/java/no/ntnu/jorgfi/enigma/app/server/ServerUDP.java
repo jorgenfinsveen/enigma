@@ -1,12 +1,11 @@
 package no.ntnu.jorgfi.enigma.app.server;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.HashMap;
 
-import no.ntnu.jorgfi.enigma.lib.Address;
 import no.ntnu.jorgfi.enigma.lib.Message;
-import no.ntnu.jorgfi.enigma.lib.Port;
 import no.ntnu.jorgfi.enigma.lib.Util;
 import no.ntnu.jorgfi.enigma.tools.FileHandler;
 import no.ntnu.jorgfi.enigma.tools.Proxy;
@@ -24,13 +23,8 @@ import no.ntnu.jorgfi.enigma.tools.Proxy;
  */
 public class ServerUDP {
     
-    /** True if there is an active task */
-    private static boolean taskRequested = false;
-
-    /* Contents of active task */
-    private static String taskSentence = "";
-    private static String taskType = "";
-    private static int taskCount = 0;
+    /* HashMap for sotring clients and the task which they are given */
+    private static final HashMap<Integer,Proxy> CLIENTS = new HashMap<>();
 
     /**
      * Starting the UDP server, which will
@@ -40,146 +34,205 @@ public class ServerUDP {
      */
     public void run() {
 
-        
-        /* Printing active ip-address to STDOUT */
-        Util.printer(
-            Message.S_ACTIVE_1 + Address.ACTIVE_HOST,
-            true,
-            Util.SERVER_COLOR
-        );
-
-        /* Printing active port to STDOUT */
-        Util.printer(
-            Message.S_ACTIVE_2 + Port.ACTIVE_PORT,
-            true,
-            Util.SERVER_COLOR
-        );
-
-        /* Aesthetic spacing */
-        System.out.println();
-
-        /* Creating a binary sequence for the upcoming appeal with a fitting size*/
-        byte[] binaryAppeal = new byte[1024];
-
-        DatagramSocket socket;
-        try {
-            socket = new DatagramSocket(Port.ACTIVE_PORT);
-
-        } catch (Exception e) {
-
-            /* Prints error message to STDOUT */
-            Util.errorPrinter(Message.S_SOCKET_ERROR, true);
-            return;
-        }
-
         /* Runs until the application shuts down */
         while (true) {
             try {
-                /* Creating a variable to hold the packet to be recieved */
-                DatagramPacket receivingPacket = new DatagramPacket (
-                    binaryAppeal,
-                    binaryAppeal.length
-                );
+               
+                /* Receiving a datagram */
+                Object[] data = receivePacket();
+                Object[] origin = new Object[] {(InetAddress) data[1], (int) data[2]};
+                String message = (String) data[0];
 
 
-                /* Receive the datagram from ServerUDP */
-                socket.receive(receivingPacket);
+                /* Handles the received message and choosed correct response */
+                String response = distribute(origin, message);
 
-                /* Converting the datagram to a readable String */
-                String message = new String (
-                    receivingPacket.getData(),
-                    0,
-                    receivingPacket.getLength()
-                );
-
-                /* Getting address and port of ClientUDP */
-                InetAddress clientAddress = receivingPacket.getAddress();
-                int clientPort = receivingPacket.getPort();
-
-
-                byte[] binaryResponse;
-
-
-                if (!taskRequested) {
-                    if ("task".equals(message)) {
-                        Proxy radomTask = FileHandler.getRandomProxy();
-
-                        setTask(
-                            radomTask.getSentence(),
-                            radomTask.getType(),
-                            radomTask.getCount()
-                        );
-
-                        binaryResponse = taskSentence.getBytes();
-                        taskRequested = true;
-
-                    } else {
-                        binaryResponse = "Invalid request".getBytes();
-                    }
-                } else {
-                    String[] content = message.split("\\s+");
-                    binaryResponse = "error".getBytes();
-
-                    if (content.length == 2) {
-                        String suggestedType = content[0];
-
-                        try {
-                            int suggestedCount = Integer.parseInt(content[1]);
-                            if (taskType.equalsIgnoreCase(suggestedType) && taskCount == suggestedCount) {
-                                binaryResponse = "ok".getBytes();
-                                taskRequested = false;
-                            } 
-                        } catch (Exception e) {}
-                    }
-                }
-
-                /* Checks if the user wants to disconnect */
-                try {
-                    if ("disconnect".equalsIgnoreCase(message.substring(0, 10))) {
-                        Util.printer(
-                            Message.C_RESPONSE,
-                            false,
-                            Util.SERVER_COLOR
-                        );
-
-                        Util.printer(
-                            Message.EXIT_MESSAGE,
-                            true,
-                            Util.EXIT_COLOR
-                        );
-                        System.exit(0);
-                    }
-                } catch (Exception e) {}
-
-
-                DatagramPacket sendingPacket = new DatagramPacket (
-                    binaryResponse, 
-                    binaryResponse.length,
-                    clientAddress,
-                    clientPort 
-                );
-
-                /* Uses the socket to send the datagram to ClientUDP */
-                socket.send(sendingPacket);
+                /* Sends response back to the client */
+                sendPacket(origin, response);
             
-            } catch (Exception e) {
-                
-                /* Prints error message to STDOUT */
-                Util.errorPrinter(Message.S_COMMUNICATION_ERROR, true);
-                socket.close();
-                throw new RuntimeException(e);
-            }
+            } catch (Exception e) {throwException(e);}
         }
     }
 
 
 
+
     /**
-     * Saves the current task
+     * Receive a DatagramPacket from a client.
+     * 
+     * @return client information [message, IP, port]
+     * @throws IOException
+     *      Socket cannot receive a DatagramPacket. 
      */
-    private static void setTask(String sentence, String type, int count) {
-        taskSentence = sentence;
-        taskType = type;
-        taskCount = count;
+    private static Object[] receivePacket() throws IOException {
+        /* Creating a binary sequence for the upcoming appeal with a fitting size*/
+        byte[] bytes = new byte[1024];
+
+         /* Creating a variable to hold the packet to be recieved */
+         DatagramPacket packet = new DatagramPacket (
+            bytes,
+            bytes.length
+        );
+
+        /* Receive the datagram from ServerUDP */
+        Util.SERVER_SOCKET.receive(packet);
+
+        /* Converting the datagram to a readable String */
+        String message = new String (
+            packet.getData(),
+            0,
+            packet.getLength()
+        );
+
+        /* Getting address and port of ClientUDP */
+        InetAddress clientAddress = packet.getAddress();
+        int clientPort = packet.getPort();
+
+        return new Object[] {message, clientAddress, clientPort};
+    }
+
+
+
+
+    /**
+     * Send a DatagramPacket to a client.
+     * 
+     * @param message to send.
+     * @param address of the client.
+     * @param port number which the client is active upon.
+     * @throws IOException 
+     *      Socket does not send DatagramPacket successfully.
+     */
+    private static void sendPacket(Object[] origin, String message) throws IOException {
+
+        byte[] bytes = message.getBytes();
+        InetAddress address = (InetAddress) origin[0];
+        int port = (int) origin[1];
+
+        /* Creating a new datagram to send to a client */
+        DatagramPacket sendingPacket = new DatagramPacket (
+            bytes, 
+            bytes.length,
+            address,
+            port 
+        );
+
+        /* Uses the socket to send the datagram to ClientUDP */
+        Util.SERVER_SOCKET.send(sendingPacket);
+    }
+
+
+
+
+    /**
+     * Distribute the responible operation for a specific
+     * type of message recieved from a client.
+     */
+    private static String distribute(Object[] origin, String message) {
+        
+        String response;
+        int hash = hashOrigin(origin);
+
+        if (!CLIENTS.containsKey(hash)) {
+            if (Message.C_IN_TASK.equals(message)) response = taskRequested(origin);
+            else {response = Message.S_OUT_INVALID;}
+        } else if (Message.C_IN_TASK.equals(message)) {
+            CLIENTS.remove(hash);
+            response = taskRequested(origin);
+        } else response = expectSolution(origin, message);
+
+        return response;
+    }
+
+
+
+
+    /**
+     * Return a task randomly chosen from the
+     * actice question bank.
+     * 
+     * @return task
+     */
+    private static String taskRequested(Object[] origin) {
+        Proxy task = FileHandler.getRandomProxy();
+        CLIENTS.put(hashOrigin(origin), task);
+        return task.getSentence();
+    }
+
+
+
+
+    /**
+     * A client has sent answers to a task sent by the server.
+     * 
+     * @param message which the client sent.
+     * @return appropriate server response.
+     */
+    private static String expectSolution(Object[] origin, String message) {
+
+        /* Create default response and splits client message on whitespace */
+        String response = Message.S_OUT_ERROR;
+        String[] content = message.split("\\s+");
+
+        int hash = hashOrigin(origin);
+
+        /* Finds the task given by the server to this particular client */
+        Proxy task = CLIENTS.get(hash);
+        String type = task.getType();
+        int count = task.getCount();
+
+        /* Validates the answers */
+        if (content.length == 2) {
+            String suggestedType = content[0];
+            /* Correct answer implies that content[1] is of type int */
+            try {
+                int suggestedCount = Integer.parseInt(content[1]);
+                if (type.equalsIgnoreCase(suggestedType) && count == suggestedCount) {
+                    response = Message.S_OUT_OK;
+                    CLIENTS.remove(hash);
+                } 
+            } catch (NumberFormatException e) {}
+        }
+        return response;
+    }
+
+
+
+
+    /**
+     * Logs occuring error, close the socket and throw
+     * a RuntimeExceptopn.
+     * 
+     * @param e the exception to throw.
+     */
+    private static void throwException(Exception e) {
+        /* Prints error message to STDOUT */
+        Util.errorPrinter(Message.S_COMMUNICATION_ERROR, true);
+        Util.SERVER_SOCKET.close();
+        throw new RuntimeException(e);
+    }
+
+    /**
+     * Hashes an IP-address and port number to
+     * be used as a key in CLIENTS HashMap.
+     * 
+     * @param origin an Object[] where orgin[0]
+     *      is the IP-address, and origin[1] is
+     *      the port number.
+     * @return hash.
+     */
+    private static int hashOrigin(Object[] origin) {
+        int ip = 0;
+        InetAddress inet = (InetAddress) origin[0];
+        String address = inet.getHostAddress();
+        int port = (int) origin[1];
+        String[] split = address.split("[.]");
+        for (String segment : split) {
+            ip += Integer.parseInt(segment);
+        }
+        int hash = 17;
+        hash = hash * 5 + ip;
+        hash=hash*5+port;
+        return hash;
     }
 }

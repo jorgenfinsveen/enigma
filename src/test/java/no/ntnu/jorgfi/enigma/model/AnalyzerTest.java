@@ -8,8 +8,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import no.ntnu.jorgfi.enigma.model.Analyzer;
-
 /**
  * <b>Unit test for Analyzer</b><p>
  * 

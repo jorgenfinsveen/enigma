@@ -118,7 +118,7 @@ public class Config {
      * <p>
      * Colorizes the terminal, making it
      * easier to distinguish from server
-     * and client. (Works only for UDP-Mode)
+     * and client. 
      * @true Colorized (default)
      * @false Not colorized
      */

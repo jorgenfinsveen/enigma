@@ -1,8 +1,8 @@
 package no.ntnu.jorgfi.enigma.lang;
 
-public class Norwegian extends Language {
+public class Norwegian {
 
-    private static String LANGUAGE = "Norwegian";
+    private static final String LANGUAGE = "Norwegian";
 
     /*
      * ClientLauncher 
@@ -11,7 +11,7 @@ public class Norwegian extends Language {
     /** Message to server */
     public static final String  L_CL_MESSAGE_REQUEST =  "\nMelding til server: ";
     /** Successfully contacted ClientUDP part 1 */
-    public static final String  L_CL_SUCCESS_1         =  "Oppretter klient-server UDP tilkonling... ";
+    public static final String  L_CL_SUCCESS_1         =  "Oppretter klient-server UDP tilkobling... ";
     /** Successfully contacted ClientUDP part 2 */
     public static final String  L_CL_SUCCESS_2         =  "suksess";
     /** Error when running the ClientLauncher */
@@ -27,6 +27,8 @@ public class Norwegian extends Language {
     public static final String L_C_RESPONSE   = "Server svarte: ";
     /** Error when running the ClientUDP*/
     public static final String L_C_ERROR      =  "\nUDP klienten svarer ikke: \n";
+    /** The word "Client": "Klient" */
+    public static final String L_C            =  "Klient: ";
 
 
 
@@ -48,6 +50,26 @@ public class Norwegian extends Language {
     public static final String L_S_COMMUNICATION_ERROR = "\nError ved mottak eller sending av et datagram: \n";
     /** Error receiving or sending a datagram */
     public static final String L_EXIT_MESSAGE = "\nKobler av...";
+    /** Norwegian version of "ok": "mottatt" */
+    public static final String S_OUT_OK = "mottatt"; 
+    /** Norwegian version of "error": "feil" */
+    public static final String S_OUT_ERROR = "feil"; 
+    /** Norwegian version of "Invalid request": "ugyldig forespørsel" */
+    public static final String S_OUT_INVALID = "ugyldig foresp"+(char)248+"rsel";   // Invalid request ID = 16
+
+
+    /*
+     * TERMINAL VALID INPUTS FROM USER TO CLIENT AND SERVER
+     * ----------------------------------------------------------------
+    */
+    /** Norwegian version of valid input "task": "oppgave" */
+    public static final String C_IN_TASK = "oppgave"; 
+    /** Norwegian version of valid input "disconnect": "avslutt" */
+    public static final String C_IN_DISCONNECT = "avslutt"; 
+    /** Norwegian version of valid input "question": "spørsmål" */
+    public static final String C_IN_QUESTION = "sp"+(char)248+"rsm"+(char)229+"l"; 
+    /** Norwegian version of valid input "statement": "påstand" */
+    public static final String C_IN_STATEMENT = "p"+(char)229+"stand"; 
 
     /** Collection of all messages in this particular language */
     public static final String[] MESSAGES = new String[] {
@@ -68,6 +90,7 @@ public class Norwegian extends Language {
         L_S_RECEIVED_2,
         L_S_SOCKET_ERROR,
         L_S_COMMUNICATION_ERROR,
-        L_EXIT_MESSAGE
+        L_EXIT_MESSAGE,
+        L_C
     };
 }

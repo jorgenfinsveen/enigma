@@ -17,7 +17,7 @@ public class ServerLauncher {
     /**
      * Creates and runs the ServerUDP
      */
-    public static void main(String[] args) {
+    public static void launch() {
         ServerUDP serverUDP = new ServerUDP();
         serverUDP.run();
     }

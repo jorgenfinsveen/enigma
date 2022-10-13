@@ -1,10 +1,17 @@
 package no.ntnu.jorgfi.enigma.lib;
 
+import java.net.DatagramSocket;
+import java.net.SocketException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 import com.diogonunes.jcolor.Ansi;
 import com.diogonunes.jcolor.AnsiFormat;
 import com.diogonunes.jcolor.Attribute;
+
+import config.Config;
+import no.ntnu.jorgfi.enigma.tools.FileHandler;
 
 /**
  * <b>Pool of objects used in the application</b><p>
@@ -24,6 +31,12 @@ public class Util {
     /** Scanner-object for reading input from STDIN */
     public static final Scanner TERMINAL =  new Scanner(System.in);
 
+    /** Socket which the client uses to connect to the server */
+    public static DatagramSocket CLIENT_SOCKET;
+
+    /** Socket which the server uses to connect to the client */
+    public static DatagramSocket SERVER_SOCKET;
+
     /** Client text color for STDOUT. Making it easier to divide server and client */
     public static final Attribute CLIENT_COLOR = Attribute.TEXT_COLOR(21);
 
@@ -39,6 +52,49 @@ public class Util {
     /** Error text color for STDOUT */
     private static AnsiFormat fError = new AnsiFormat(Attribute.YELLOW_TEXT(), Attribute.RED_BACK());
 
+    /** File path */
+    public static Path PATH = getPath();
+
+
+
+    /**
+     * Initializes the sockets after the address and ports
+     * are defined in the configuration.
+     * @throws SocketException
+     */
+    public static void initSocket() throws SocketException {
+        try {
+            CLIENT_SOCKET = new DatagramSocket();
+            SERVER_SOCKET = new DatagramSocket(Port.ACTIVE_PORT);
+        } catch (Exception e) {
+            /* Prints error message to STDOUT */
+            Util.errorPrinter(Message.S_SOCKET_ERROR, true);
+            throw new SocketException();
+        }
+    }
+
+
+    /**
+     * Initializes the file-path after getting the language
+     * which are defined in the configuration.
+     */
+    public static void initPath() {
+        if ("norwegian".equalsIgnoreCase(Config.language)) {
+            PATH = Paths.get("src/main/java/no/ntnu/jorgfi/enigma/database/sentences_no.csv");
+        } else {
+            PATH = Paths.get("src/main/java/no/ntnu/jorgfi/enigma/database/sentences_en.csv");
+        }
+        FileHandler.setPath(PATH);
+    }
+
+    /**
+     * Get the file-path based on the language
+     * which are defined in the configuration.
+     */
+    public static Path getPath() {
+        FileHandler.setPath(PATH);
+        return PATH;
+    }
 
 
     /**

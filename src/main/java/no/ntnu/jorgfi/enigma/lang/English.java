@@ -1,6 +1,6 @@
 package no.ntnu.jorgfi.enigma.lang;
 
-public class English extends Language {
+public class English {
 
     private static final String LANGUAGE = "english";
 
@@ -27,6 +27,8 @@ public class English extends Language {
     public static final String L_C_RESPONSE   = "Server responded: ";
     /** Error when running the ClientUDP*/
     public static final String L_C_ERROR      =  "\nFailed to run the UDP client: \n";
+    /** The word "Client": "Client" */
+    public static final String L_C            =  "Client: ";
 
 
 
@@ -68,6 +70,7 @@ public class English extends Language {
         L_S_RECEIVED_2,
         L_S_SOCKET_ERROR,
         L_S_COMMUNICATION_ERROR,
-        L_EXIT_MESSAGE
+        L_EXIT_MESSAGE,
+        L_C
     };
 }

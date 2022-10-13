@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import no.ntnu.jorgfi.enigma.lib.Message;
+import no.ntnu.jorgfi.enigma.lib.Util;
 import no.ntnu.jorgfi.enigma.model.Analyzer;
 
 /**
@@ -34,24 +36,39 @@ public class ServerUI {
      * method if the client sends the <code>task</code>
      * request.
      */
-    public static void main(String[] args) {
+    public static void launch() {
         Boolean requested = false;
-        System.out.println("\nWELCOME TO SERVER UI");
-        System.out.println("\n" + LINES);
-        System.out.println("Enter the initializing command to continue...");
+        System.out.println();
+        Util.printer(
+            "\nWELCOME TO SERVER UI",
+            true, 
+            Util.SERVER_COLOR
+        );
+        System.out.println(LINES);
+        askForInput();
+
+        String input = scanner.nextLine();
+        System.out.println();
+
+        checkDisconnect(input);
 
         while (!requested) {
-            String input = scanner.nextLine();
+            checkDisconnect(input);
             if ("task".equals(input)) {
                 requested = true;
                 showInstructions();
-                System.out.println("Write the desired task and press enter");
+                askForTask();
                 start(true);
-            }
-            else if ("disconnect".equals(input)) {
-                System.out.println("\nDisconnecting...");
-                scanner.close();
-                break;
+            } else {
+                Util.printer(
+                    "Invalid initializing command.", 
+                    true, 
+                    Util.INVALID_COLOR
+                );
+                System.out.println("\n" + LINES);
+                askForInput();
+                input = scanner.nextLine();
+                System.out.println();
             }
         }
     }
@@ -63,7 +80,6 @@ public class ServerUI {
      * @param running <code>true</code> until the client disconnects
      */
     public static void start(Boolean running) {  
-        System.out.println("");
         if (running) {
             String input = scanner.nextLine();
             reach(input.toLowerCase());
@@ -83,27 +99,45 @@ public class ServerUI {
             // Client requests a single analyzation
             case "analyze one sentence":
                 analyzeOneSentence();
-                start(true);
                 break;
-
+            case "1":
+                analyzeOneSentence();
+                break;
+            
             // Client requests multiple analyzations
             case "analyze several sentences":
                 analyzeSeveralSentences();
-                start(true);
+                break;
+            case "2":
+                analyzeSeveralSentences();
                 break;
 
             // Client wants to disconnect
             case "disconnect":
-                System.out.println("\nDisconnecting...");
+                Util.printer(
+                    "ServerUI: ",
+                    false,
+                    Util.CLIENT_COLOR
+                );
+                Util.printer(
+                    "\nDisconnecting...", 
+                    true, 
+                    Util.EXIT_COLOR
+                );
                 scanner.close();
-                start(false);
+                System.exit(0);
                 break;
 
             // Unknown request
             default:
                 System.out.println("\n" + LINES);
-                System.out.println("The task, \"" + task + "\", is not valid.");
+                Util.printer(
+                    "The task, \"" + task + "\", is not valid.\n", 
+                    true, 
+                    Util.INVALID_COLOR
+                );
                 showInstructions();
+                askForTask();
                 start(true);
         }
     }
@@ -115,11 +149,18 @@ public class ServerUI {
      * and send it to the printResult() formatter.
      */
     private static void analyzeOneSentence() {
-        System.out.println("\nSentence: ");
-        System.out.println("");
+        Util.printer(
+                    "\nSentence: ", 
+                    false, 
+                    Util.CLIENT_COLOR
+        );
         String input = scanner.nextLine();
+        checkDisconnect(input);
         System.out.println("\n" + LINES);
         printResult(Analyzer.analyze(input));
+        System.out.println(LINES + "\n");
+        askForTask();
+        start(true);
     }
 
     
@@ -131,15 +172,41 @@ public class ServerUI {
      * formatter.
      */
     private static void analyzeSeveralSentences() {
-        System.out.println("\nAmount of sentences: ");
-        int amount = scanner.nextInt();
+        boolean valid = false;
+        int amount = 0;
+        while (!valid) {
+            Util.printer(
+                    "\nAmount of sentences: ", 
+                    false, 
+                    Util.CLIENT_COLOR
+            );
+            String amountInput = scanner.nextLine();
+            try {
+                amount = Integer.parseInt(amountInput);
+                valid = true;
+            } catch (Exception e) {
+                valid = false;
+                checkDisconnect(amountInput);
+                Util.printer(
+                    "Invalid number. Try again.", 
+                    true, 
+                    Util.INVALID_COLOR
+                );
+            }
+        }
+        
         int index = 0;
         String[] sentences = new String[amount];
         String input;
-        System.out.println("\nSentences (Separate using enter): ");
+        Util.printer(
+                    "\nSentences (Separate using enter): ", 
+                    true, 
+                    Util.CLIENT_COLOR
+        );
         
-        for (int i = 0; i <= amount; i++) {
+        for (int i = 0; i <= amount-1; i++) {
             input = scanner.nextLine();
+            checkDisconnect(input);
             // Sometimes, the scanner unintentionally register blank lines
             if (!input.isEmpty()) {
                 sentences[index] = input;
@@ -149,6 +216,9 @@ public class ServerUI {
         }
         System.out.println("\n" + LINES);
         printResults(Analyzer.analyzeList(sentences));
+        System.out.println(LINES + "\n");
+        askForTask();
+        start(true);
     }
 
 
@@ -175,10 +245,69 @@ public class ServerUI {
      * Prints the name of the available services to the console.
      */
     private static void showInstructions() {
-        System.out.println("\nThe available services are:");
-        System.out.println("  - analyze one sentence");
-        System.out.println("  - analyze several sentences");
-        System.out.println("  - disconnect");
+        Util.printer(
+                    "\nThe available services are:", 
+                    true, 
+                    Util.SERVER_COLOR
+        );
+        Util.printer(
+                    "  1. (analyze one sentence)", 
+                    true, 
+                    Util.SERVER_COLOR
+        );
+        Util.printer(
+                    "  2. (analyze several sentences)", 
+                    true, 
+                    Util.SERVER_COLOR
+        );
+        Util.printer(
+                    "  - disconnect", 
+                    true, 
+                    Util.SERVER_COLOR
+        );
         System.out.println(LINES + "\n");
+    }
+
+    /**
+     * Asks the user to type in the initializing command.
+     */
+    private static void askForInput() {
+        Util.printer(
+            "Enter the initializing command ('task') to continue: ", 
+            false, 
+            Util.CLIENT_COLOR
+        );
+    }
+
+    /**
+     * Asks the user to specify the task to execute.
+     */
+    private static void askForTask() {
+        Util.printer(
+            "Write the name (or the number) of the task to be executed and press enter: ", 
+            false, 
+            Util.CLIENT_COLOR
+        );
+    }
+
+    /**
+     * Check if disconnect is requested.
+     */
+    private static void checkDisconnect(String input) {
+        if ("disconnect".equals(input)) {
+            Util.printer(
+                "ServerUI: ",
+                false,
+                Util.CLIENT_COLOR
+            );
+
+            Util.printer(
+                Message.EXIT_MESSAGE,
+                true,
+                Util.EXIT_COLOR
+            );
+            scanner.close();
+            System.exit(0);
+        }
     }
 }

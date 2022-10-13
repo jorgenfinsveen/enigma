@@ -1,9 +1,13 @@
 package no.ntnu.jorgfi.enigma.core;
 
+import java.net.SocketException;
+import java.util.Objects;
+
 import no.ntnu.jorgfi.enigma.core.build.Build;
 import no.ntnu.jorgfi.enigma.core.client.ClientLauncher;
 import no.ntnu.jorgfi.enigma.core.server.ServerLauncher;
 import no.ntnu.jorgfi.enigma.extra.ServerUI;
+import no.ntnu.jorgfi.enigma.lib.Address;
 
 
 /**
@@ -34,10 +38,6 @@ import no.ntnu.jorgfi.enigma.extra.ServerUI;
  */
 public class Main {
 
-    /** String array args from program init to use in threads */
-    private static String[] args;
-
-
     /**
     * <h2>First method to launch</h2>
     * <p> 
@@ -54,11 +54,9 @@ public class Main {
     * @param args
     * @throws InterruptedException if <code>Thread.sleep(100)</code>
     *   fails to stop the thread.
+     * @throws SocketException if socket connection fails.
     */
-    public static void main(String[] args) throws InterruptedException {
-
-        /* Store the method-args, which will be reused */
-        Main.args = args;
+    public static void main(String[] args) throws InterruptedException, SocketException {
 
         /* Runs configuration */
         Build.CONFIGURATE();
@@ -79,7 +77,7 @@ public class Main {
      * Starts the application in ServerUI-mode (custom)
      */
     private static void startUI() {
-        ServerUI.main(args);
+        ServerUI.launch();
     }
 
 
@@ -91,32 +89,37 @@ public class Main {
         /* Aesthetic spacing */
         System.out.println();
 
-        /* 
-         Sets max priority to the server-thread,
-         and minimum priority to the client-thread
-        */
-        SERVER_THREAD.setPriority(Thread.MAX_PRIORITY);
-        CLIENT_THREAD.setPriority(Thread.MIN_PRIORITY);
+        if (!Objects.equals(Address.ACTIVE_HOST, Address.TESTHOST)) {
 
-        /* Starts the server thread */
-        SERVER_THREAD.start();
+            /* 
+            Sets max priority to the server-thread,
+            and minimum priority to the client-thread
+            */
+            SERVER_THREAD.setPriority(Thread.MAX_PRIORITY);
+            CLIENT_THREAD.setPriority(Thread.MIN_PRIORITY);
 
-        /* 
-         Stops the program for 100 milliseconds so that 
-         the server-thread gets a head start.
-        */
-        Thread.sleep(100);
+            /* Starts the server thread */
+            SERVER_THREAD.start();
 
-        /* Starts the client thread */
-        CLIENT_THREAD.start();   
-        
-        /* 
-         Since the different threads will wait for responses
-         from eachother after the ServerUDP and ClientUDP 
-         are launched.
-        */
-        SERVER_THREAD.setPriority(Thread.NORM_PRIORITY);
-        CLIENT_THREAD.setPriority(Thread.NORM_PRIORITY);
+            /* 
+            Stops the program for 100 milliseconds so that 
+            the server-thread gets a head start.
+            */
+            Thread.sleep(100);
+
+            /* Starts the client thread */
+            CLIENT_THREAD.start();   
+            
+            /* 
+            Since the different threads will wait for responses
+            from eachother after the ServerUDP and ClientUDP 
+            are launched.
+            */
+            SERVER_THREAD.setPriority(Thread.NORM_PRIORITY);
+            CLIENT_THREAD.setPriority(Thread.NORM_PRIORITY);
+        } else {
+            CLIENT_THREAD.start();
+        }
     }
 
 
@@ -126,7 +129,7 @@ public class Main {
      */
     private static final Thread SERVER_THREAD = new Thread() {
         @Override
-        public void run() { ServerLauncher.main(args); }
+        public void run() { ServerLauncher.launch(); }
     };
 
 
@@ -136,6 +139,6 @@ public class Main {
      */
     private static final Thread CLIENT_THREAD = new Thread() {
         @Override
-        public void run() { ClientLauncher.main(args); }
+        public void run() { ClientLauncher.launch(); }
     };
 }

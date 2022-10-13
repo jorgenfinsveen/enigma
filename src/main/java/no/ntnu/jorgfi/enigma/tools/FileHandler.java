@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import no.ntnu.jorgfi.enigma.lib.Util;
+
 
 /**
  * <b>File Handling Program</b><p>
@@ -18,9 +20,17 @@ import java.util.Random;
  */
 public class FileHandler {
 
-  private static final Path path = Paths.get("src/main/java/no/ntnu/jorgfi/enigma/database/sentences.csv");
+
+  public static Path  PATH = Util.getPath();
   private static final Random rand = new Random();
 
+  /**
+   * Sets the filepath.
+   * @param path to the file.
+   */
+  public static void setPath(Path path) {
+    PATH = path;
+  }
   /**
    * Method that returns a table from a .csv file.
    * @return Table table containing the table entries
@@ -33,7 +43,7 @@ public class FileHandler {
 
 
     /* Reads lines from the CSV file and adds them to the lines list */
-    try (BufferedReader reader = Files.newBufferedReader(path)) {
+    try (BufferedReader reader = Files.newBufferedReader(PATH)) {
       String line;
       while ( (line = reader.readLine() ) != null ) lines.add(line);  
     } catch (IOException e) {

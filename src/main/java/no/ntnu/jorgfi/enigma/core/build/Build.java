@@ -1,5 +1,6 @@
 package no.ntnu.jorgfi.enigma.core.build;
 
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
@@ -11,12 +12,25 @@ import no.ntnu.jorgfi.enigma.lib.Util;
 
 /**
  * Applies the configurations from
- * Config.java
+ * Config.java to the application.
+ * 
+ * <p>THIS FILE SHOULD NOT BE MODIFIED
+ * AS ERRORS FROM THIS FILE WILL LEAD
+ * THE WHOLE APPLICATION CRASH.
+ * 
+ * <p>FOR CONFIGURATING THE
+ * APPLICATION, PLEASE VISIT <code>config.java</code>
  * 
  * @author gruppe11
  * @version 02.10.22
  */
 public class Build {
+
+
+    /*
+     * FIELDS
+     * ---------------------------------------------------------
+    */
 
     /** Applicaction mode */
     public static boolean UDP_MODE = true;
@@ -48,43 +62,67 @@ public class Build {
     };
 
 
+
+
+
+    /*
+     * CONFIGURATION ACTIVATION 
+     * ---------------------------------------------------------
+    */
+
     /**
      * Applies all configurations to the application
+     * @throws SocketException
      */
-    public static void CONFIGURATE() {
+    public static void CONFIGURATE() throws SocketException {
         APPLY_LANGUAGE();
         APPLY_SERVER();
         APPLY_MODE();
         APPLY_COLOR();
         APPLY_FULL_AUTO();
+        Util.initSocket();
     }
 
 
 
+
+
+    /*
+     * SEPARATE CONFIGURATOR METHODS
+     * ---------------------------------------------------------
+    */
+
+    /**
+     * Apply color configurations to the application.
+     */
     private static void APPLY_COLOR() {
         Config.COLOR_CONFIG();
         Util.colorized = Config.colorized;
     }
 
 
+
+    /**
+     * Apply full auto configuration.
+     */
     private static void APPLY_FULL_AUTO() {
         Config.FULL_AUTO_CONFIG();
-        if ("localhost".equalsIgnoreCase(activeIP) && activePort == Port.LOCALHOST_RPC ) {
-            FULL_AUTO = true;
-        } else {
-            System.out.print("\nConfig: Full-auto mode not compatible with ");
-            System.out.print("other servers than localhost.");
-            System.out.println("\nConfig: Full-auto disabled.");
+        if (Config.fullAuto) {
+            if ("localhost".equalsIgnoreCase(activeIP) && activePort == Port.LOCALHOST_RPC ) {
+                FULL_AUTO = true;
+            } else {
+                System.out.print("\nConfig: Full-auto mode not compatible with ");
+                System.out.print("other servers than localhost.");
+                System.out.println("\nConfig: Full-auto disabled.");
+            }
         }
     }
 
 
 
-
-
-
-
-
+    /**
+     * Apply language configuration.
+     */
     private static void APPLY_LANGUAGE() {
         Config.LANGUAGE_CONFIG();
 
@@ -94,9 +132,11 @@ public class Build {
             Message.lang = "english";
         }
         Message.refresh();
+        Util.initPath();
     }
 
     
+
     /**
      * Apply application mode configuration based on MODE_CONFIG
     */
@@ -105,6 +145,7 @@ public class Build {
         UDP_MODE = Config.UDPmode;
     }
     
+
 
     /**
      * Apply server configuration based on SERVER_CONFIG
@@ -118,12 +159,12 @@ public class Build {
 
         boolean valid_port;
 
-        if ("localhost".equals(Config.serverIP)) {
+        if ("localhost".equalsIgnoreCase(Config.serverIP)) {
             valid_port = Arrays.stream(VALID_COMBINATIONS[0])
                                .anyMatch(Config.serverPort::equals);
             
             Address.ACTIVE_HOST = Address.LOCALHOST;
-            activeIP = "localhost";
+            activeIP = Address.LOCALHOST;
 
             if (valid_port) {
                 int port = PORT_NUMBER[0][FIND_INDEX(0)];
@@ -144,7 +185,7 @@ public class Build {
                                .anyMatch(Config.serverPort::equals);
 
             Address.ACTIVE_HOST = Address.TESTHOST;
-            activeIP = "testhost";
+            activeIP = Address.LOCALHOST;
 
             if (valid_port) {
                 int port = PORT_NUMBER[1][FIND_INDEX(0)];
@@ -166,6 +207,8 @@ public class Build {
             activePort = Port.LOCALHOST_RPC;
         }
     }
+
+
 
     /**
      * Find index of given item

@@ -27,43 +27,28 @@ public class ClientLauncher {
      * Creates and runs the ClientUDP with the parameter
      * specified by the user-input to the terminal.
      */
-    public static void main(String[] args) {
+    public static void launch() {
 
         /* 
          * Will try to read input from STDIN and launch the ClientUDP 
          * with the input as parameter.
         */
-        try {
-            while (true) {
-                /* Only prints at first call to main() */
-                if (!connected) { 
-                    System.out.print(Message.CL_SUCCESS_1 + "\"");
-                    Util.printer(Message.CL_SUCCESS_2, false, Attribute.GREEN_TEXT());
-                    System.out.println("\"\n");
+            
+        /* Only prints at first call to main() */
+        if (!connected) { 
+            System.out.print(Message.CL_SUCCESS_1 + "\"");
+            Util.printer(Message.CL_SUCCESS_2, false, Attribute.GREEN_TEXT());
+            System.out.println("\"\n");
 
-                    /* Sets the field conncted to true */
-                    connected = true;
-                }
-
-                /* Reads input from STDIN */
-                Util.printer(
-                    Message.CL_MESSAGE_REQUEST,
-                    false,
-                    Util.CLIENT_COLOR
-                );
-                String terminalInput = Util.TERMINAL.nextLine();
-
-                /* Prepares the ClientUDP */
-                ClientUDP clientUDP = new ClientUDP();
-
-                /* Launches the client */
-                clientUDP.run(terminalInput);
-                
-            }
-        } catch (Exception e) {
-
-            /* Prints error message to STDOUT */
-            Util.errorPrinter(Message.CL_ERROR, true);
+            /* Sets the field conncted to true */
+            connected = true;
         }
+
+
+        /* Prepares the ClientUDP */
+        ClientUDP clientUDP = new ClientUDP();
+
+        /* Launches the client */
+        clientUDP.run();
     }
 }
