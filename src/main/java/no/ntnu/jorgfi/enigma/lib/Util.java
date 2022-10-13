@@ -49,6 +49,9 @@ public class Util {
     /** Invalid text color for STDOUT */
     public static final Attribute INVALID_COLOR = Attribute.TEXT_COLOR(130);
 
+    /** Analyzer color for STDOUT */
+    public static final Attribute ANALYZER_COLOR = Attribute.BRIGHT_CYAN_TEXT();
+
     /** Error text color for STDOUT */
     private static AnsiFormat fError = new AnsiFormat(Attribute.YELLOW_TEXT(), Attribute.RED_BACK());
 

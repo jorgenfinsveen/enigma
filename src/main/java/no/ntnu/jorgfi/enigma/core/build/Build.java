@@ -65,6 +65,7 @@ public class Build {
 
 
 
+
     /*
      * CONFIGURATION ACTIVATION 
      * ---------------------------------------------------------
@@ -108,13 +109,13 @@ public class Build {
     private static void APPLY_FULL_AUTO() {
         Config.FULL_AUTO_CONFIG();
         if (Config.fullAuto) {
-            if ("localhost".equalsIgnoreCase(activeIP) && activePort == Port.LOCALHOST_RPC ) {
+            if (Address.ACTIVE_HOST.equalsIgnoreCase(Address.LOCALHOST) && activePort == Port.LOCALHOST_RPC ) {
                 FULL_AUTO = true;
             } else {
                 System.out.print("\nConfig: Full-auto mode not compatible with ");
                 System.out.print("other servers than localhost.");
                 System.out.println("\nConfig: Full-auto disabled.");
-            }
+            } 
         }
     }
 

@@ -35,7 +35,7 @@ public class AnalyzerTest {
         "Can I have some?",
         "No.",
         "Why?",
-        "I need it to cope with my severe opioid addiction!"
+        "I need it to cope with my severe opioid addiction!",
     };
 
     /**
@@ -115,5 +115,17 @@ public class AnalyzerTest {
             assertNotEquals("wow", results.get(i).get(0));
             assertNotEquals("-1", results.get(i).get(1));
         }   
+    }
+
+    @Test
+    public void testZeroLengthSentences() {
+        String s1 = ".";
+        String s2 = "?";
+
+        assertEquals("false", Analyzer.analyze(s1).get(0));
+        assertEquals("0", Analyzer.analyze(s1).get(1));
+
+        assertEquals("true", Analyzer.analyze(s2).get(0));
+        assertEquals("0", Analyzer.analyze(s2).get(1));
     }
 }

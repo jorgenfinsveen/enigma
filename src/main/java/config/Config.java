@@ -69,12 +69,12 @@ public class Config {
         /*
          * IP-address of the UDP task server
         */
-        serverIP = "localhost";
+        serverIP = "testhost";
 
         /*
          * Port-number of the UDP task server
         */
-        serverPort = "rpc";
+        serverPort = "default";
     }
 
 
@@ -108,7 +108,7 @@ public class Config {
         /* 
          * Change language.
         */
-        language = "english";
+        language = "norwegian";
     }
 
 
@@ -157,6 +157,6 @@ public class Config {
         /*
          * Switch between full-auto mode and default mode
         */
-        fullAuto = false;
+        fullAuto = true;
     }
 }

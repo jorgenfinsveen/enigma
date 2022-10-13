@@ -3,13 +3,17 @@ package no.ntnu.jorgfi.enigma.app.client;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.util.List;
+import java.util.Scanner;
 
 import com.diogonunes.jcolor.Attribute;
 
+import no.ntnu.jorgfi.enigma.core.build.Build;
 import no.ntnu.jorgfi.enigma.lib.Address;
 import no.ntnu.jorgfi.enigma.lib.Message;
 import no.ntnu.jorgfi.enigma.lib.Port;
 import no.ntnu.jorgfi.enigma.lib.Util;
+import no.ntnu.jorgfi.enigma.model.Analyzer;
 
 /**
  * <b>UDP Client<b><p>
@@ -26,6 +30,33 @@ import no.ntnu.jorgfi.enigma.lib.Util;
  */
 public class ClientUDP {
 
+    /** Used at Full-Auto for keeping track of tasks answered */
+    private static int taskCount = 0;
+    private static int correct = 0;
+    private static int wrong = 0;
+
+     /**
+     * Thread listening for input from STDIN when using
+     * full auto. It should then stop the program.
+     */
+    private static final Thread LISTENER = new Thread() {
+        @Override
+        public void run() { 
+            System.out.println("started");
+            int i;
+            Scanner scanner = new Scanner(System.in);
+
+            while (true) {
+                System.out.println("in while");
+                try {
+                    i = scanner.nextInt();
+                    break;
+                } catch (Exception e) {System.out.println("none");}
+            }
+            System.exit(i);
+        }
+    };
+
     /**
      * Starting the UDP client, which will send the
      * paramter message to the UDP server as a datagram
@@ -33,6 +64,8 @@ public class ClientUDP {
      * @param message to send to the the UDP Server
      */
     public void run() {
+
+       if (Build.FULL_AUTO) {LISTENER.start();}
 
         /* Printing active ip-address to STDOUT */
         Util.printer(
@@ -53,17 +86,32 @@ public class ClientUDP {
 
         while (true) {
             try{
-                /* Request user-input from STDIN */
-                String message = requestCommand();
+                if ((Build.FULL_AUTO && taskCount % 2 == 0)
+                    || !Build.FULL_AUTO) {
 
-                /* Send the message to the UDP server */
-                sendPacket(message);
+                    /* Request user-input from STDIN */
+                    String message = requestCommand(); 
 
-                /* Receive a datagram from the ServerUDP */
-                String response = receivePacket();
+                    taskCount++;
 
-                /* Handle the reponse received from the ServerUDP */
-                handleResponse(response);
+                    /* Send the message to the UDP server */
+                    sendPacket(message); 
+                } 
+
+
+                if ((Build.FULL_AUTO && taskCount % 2 != 0)
+                || !Build.FULL_AUTO) {
+
+                    /* Receive a datagram from the ServerUDP */
+                    String response = receivePacket();
+
+                    taskCount++;
+
+                    /* Handle the reponse received from the ServerUDP */
+                    handleResponse(response);
+                }
+
+                if (Build.FULL_AUTO) Thread.sleep(1000);
 
             } catch (Exception e) { throwException(e);}
         }
@@ -158,20 +206,24 @@ public class ClientUDP {
      * @return message from user.
      */
     private static String requestCommand() {
-        /* Reads input from STDIN */
-        Util.printer(
-            Message.CL_MESSAGE_REQUEST,
-            false,
-            Util.CLIENT_COLOR
-        );
-        String message = Util.TERMINAL.nextLine();
 
-        /* Translates the message */
-        message = translateInput(message);
+        String message;
 
-        /* Checks if the client should disconnect */
-        checkDisconnect(message);
+        if (!Build.FULL_AUTO) {
+            /* Reads input from STDIN */
+            Util.printer(
+                Message.CL_MESSAGE_REQUEST,
+                false,
+                Util.CLIENT_COLOR
+            );
+            message = Util.TERMINAL.nextLine();
 
+            /* Translates the message */
+            message = translateInput(message);
+
+            /* Checks if the client should disconnect */
+            checkDisconnect(message);
+        } else message = translateInput(Message.C_IN_TASK);
         return message;
     }
 
@@ -220,7 +272,7 @@ public class ClientUDP {
             InetAddress.getByName(Address.ACTIVE_HOST),
             Port.ACTIVE_PORT 
         );
-
+ 
         /* Uses the socket to send the datagram to the ServerUDP */
         Util.CLIENT_SOCKET.send(sendingPacket);
     }
@@ -232,10 +284,40 @@ public class ClientUDP {
      * and formats the user-ouput.
      * 
      * @param response to handle.
+     * @throws IOException
      */
-    private static void handleResponse(String response) {
+    private static void handleResponse(String response) throws IOException {
         /* Translates the response */
         response = translateOutput(response);
+
+        final Attribute COLOR;
+        boolean isTask = false;
+
+        /* Picking a appropriate color for the response */
+        switch (response) {
+            case Message.S_OUT_INVALID:
+                COLOR = Attribute.TEXT_COLOR(208);
+                isTask = false;
+                break;
+            case Message.S_OUT_OK:
+                COLOR = Attribute.GREEN_TEXT();
+                isTask = false;
+                correct = correct + 1;
+                break;
+            case Message.S_OUT_ERROR:
+                COLOR = Attribute.RED_TEXT();
+                isTask = false;
+                wrong = wrong + 1;
+                break;
+            default:
+                COLOR = Attribute.NONE();
+                isTask = true;
+        }
+
+        if (Build.FULL_AUTO && isTask) {
+            System.out.println(); 
+            taskCount++;
+        }
 
         /* Displaying the response to STDOUT part 1 */
         Util.printer(
@@ -244,25 +326,10 @@ public class ClientUDP {
                 Util.SERVER_COLOR
         );
 
-        final Attribute COLOR;
-
-        /* Picking a appropriate color for the response */
-        switch (response) {
-            case Message.S_OUT_INVALID:
-                COLOR = Attribute.TEXT_COLOR(208);
-                break;
-            case Message.S_OUT_OK:
-                COLOR = Attribute.GREEN_TEXT();
-                break;
-            case Message.S_OUT_ERROR:
-                COLOR = Attribute.RED_TEXT();
-                break;
-            default:
-                COLOR = Attribute.NONE();
-        }
-
         /* Displaying the response to STDOUT part 2 */
-        Util.printer(response + "\n", true, COLOR);
+        Util.printer(response, true, COLOR);
+        if (Build.FULL_AUTO && isTask) autoAnalyze(response);
+        if (!Build.FULL_AUTO && !isTask) System.out.println();
     }
 
 
@@ -280,5 +347,31 @@ public class ClientUDP {
         e.printStackTrace();
         System.exit(1);
         throw new RuntimeException(e);
+    }
+
+
+
+
+    /**
+     * @throws IOException
+     * 
+     */
+    private static void autoAnalyze(String response) throws IOException {
+
+        response = response.trim();
+
+        List<String> result = Analyzer.analyze(response);
+
+        boolean isQuestion = Boolean.parseBoolean(result.get(0));
+        int count = Integer.parseInt(result.get(1));
+
+        String m1 = (
+            (isQuestion) ? Message.C_IN_QUESTION : Message.C_IN_STATEMENT
+        );
+
+        String solution = translateInput(m1 + " " + count).trim();
+        Util.printer("Analyzer: ", false, Util.ANALYZER_COLOR);
+        Util.printer(solution, true, Attribute.NONE());
+        sendPacket(translateInput(m1 + " " + count));
     }
 }

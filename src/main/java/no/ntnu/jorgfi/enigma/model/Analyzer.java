@@ -66,6 +66,6 @@ public class Analyzer {
      * @return amount of words in the sentence
      */
     private static int amountOfWords(String sentence) {
-        return sentence.split("\\s+").length;
+        return ((sentence.length() == 1) ? 0 : sentence.split("\\s+").length);
     }
 }
